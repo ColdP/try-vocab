@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Try Vocab</title>
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+
+	<style>
+		:root {
+			--color-bg: #fafafa;
+			--color-black: #0a0a0a;
+			--color-ink-blue: #0f2540;
+			--color-ink-pink: #d93668;
+			--font-main: 'Inter', sans-serif;
+		}
+
+		* {
+			box-sizing: border-box;
+			font-family: var(--font-main);
+		}
+
+		body {
+			margin: 0;
+			background: var(--color-bg);
+			color: var(--color-black);
+			overflow-x: hidden;
+		}
+
+		.halftone-bg {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: -1;
+			pointer-events: none;
+			opacity: 0.05;
+			background-image: radial-gradient(var(--color-black) 10%, transparent 10%);
+			background-size: 12px 12px;
+		}
+
+		.container {
+			max-width: 860px;
+			margin: 0 auto;
+			padding: 22px 16px 48px;
+			display: grid;
+			gap: 18px;
+		}
+
+		.comic-panel {
+			position: relative;
+			background: #fff;
+			border: 4px solid var(--color-black);
+			box-shadow: 8px 8px 0 var(--color-ink-blue);
+			padding: 16px;
+		}
+
+		.comic-panel.pink-shadow {
+			box-shadow: 8px 8px 0 var(--color-ink-pink);
+		}
+
+		h1 {
+			margin: 0 0 10px;
+			font-size: 34px;
+			font-weight: 900;
+			letter-spacing: 0.03em;
+		}
+
+		.section-title {
+			display: inline-block;
+			margin: 0 0 10px;
+			padding: 4px 10px;
+			background: var(--color-black);
+			color: #fff;
+			font-size: 14px;
+			font-weight: 900;
+			letter-spacing: 0.06em;
+		}
+
+		.row,
+		.row-2 {
+			display: grid;
+			gap: 10px;
+			align-items: end;
+		}
+
+		.row {
+			grid-template-columns: 1fr auto;
+		}
+
+		.row-2 {
+			grid-template-columns: 1fr 1fr auto auto auto;
+		}
+
+		.field {
+			display: grid;
+			gap: 6px;
+		}
+
+		label {
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 0.02em;
+		}
+
+		input {
+			width: 100%;
+			height: 44px;
+			padding: 0 12px;
+			border: 3px solid var(--color-black);
+			background: #fff;
+			font-size: 15px;
+			outline: none;
+		}
+
+		input:focus {
+			border-color: var(--color-ink-blue);
+		}
+
+		.btn {
+			height: 44px;
+			padding: 0 14px;
+			border: 3px solid var(--color-black);
+			background: #fff;
+			color: var(--color-black);
+			font-weight: 900;
+			font-size: 14px;
+			cursor: pointer;
+			transition: transform 0.12s ease;
+		}
+
+		.btn.primary {
+			background: var(--color-ink-blue);
+			border-color: var(--color-black);
+			color: #fff;
+		}
+
+		.btn.pink {
+			background: var(--color-ink-pink);
+			color: #fff;
+		}
+
+		.btn:active {
+			transform: translate(2px, 2px);
+		}
+
+		.hint {
+			margin: 0;
+			font-size: 13px;
+			font-weight: 700;
+			color: #333;
+		}
+
+		.status {
+			margin: 0;
+			min-height: 22px;
+			font-size: 14px;
+			font-weight: 700;
+			color: var(--color-ink-blue);
+			white-space: pre-wrap;
+		}
+
+		.words-wrap {
+			display: grid;
+			gap: 10px;
+		}
+
+		.word-card {
+			border: 3px solid var(--color-black);
+			background: #fff;
+			padding: 12px;
+		}
+
+		.word-title {
+			font-size: 20px;
+			font-weight: 900;
+			color: var(--color-ink-pink);
+			margin: 0 0 8px;
+		}
+
+		.word-meta {
+			display: grid;
+			gap: 5px;
+			font-size: 14px;
+			font-weight: 700;
+		}
+
+		.empty-state {
+			border: 3px dashed var(--color-black);
+			padding: 16px;
+			font-size: 14px;
+			font-weight: 700;
+			text-align: center;
+		}
+
+		@media (max-width: 860px) {
+			.row,
+			.row-2 {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="halftone-bg"></div>
+	<main class="container">
+		<section class="comic-panel">
+			<h1>Try Vocab</h1>
+
+			<div class="section-title">账户与密钥</div>
+			<div class="row">
+				<div class="field">
+					<label for="apiKeyInput">Gemini API Key</label>
+					<input id="apiKeyInput" type="password" placeholder="请输入 Gemini API Key" />
+				</div>
+				<button class="btn primary" id="saveApiKeyBtn" type="button">保存 API Key</button>
+			</div>
+
+			<div class="row-2">
+				<div class="field">
+					<label for="usernameInput">用户名</label>
+					<input id="usernameInput" type="text" placeholder="请输入用户名" autocomplete="username" />
+				</div>
+				<div class="field">
+					<label for="passwordInput">密码</label>
+					<input id="passwordInput" type="password" placeholder="请输入密码" autocomplete="current-password" />
+				</div>
+				<button class="btn" id="registerBtn" type="button">注册</button>
+				<button class="btn primary" id="loginBtn" type="button">登录</button>
+				<button class="btn pink" id="logoutBtn" type="button">退出登录</button>
+			</div>
+
+			<p class="hint">登录成功后会自动保存 Token 到 localStorage。</p>
+			<p id="statusText" class="status"></p>
+		</section>
+
+		<section class="comic-panel pink-shadow">
+			<div class="section-title">生词分析</div>
+			<div class="row">
+				<div class="field">
+					<label for="wordInput">输入生词</label>
+					<input id="wordInput" type="text" placeholder="例如：ephemeral" />
+				</div>
+				<button class="btn primary" id="analyzeBtn" type="button">分析并保存</button>
+			</div>
+		</section>
+
+		<section class="comic-panel">
+			<div class="section-title">我的词库</div>
+			<div class="words-wrap" id="wordList"></div>
+		</section>
+	</main>
+
+	<script>
+		const BASE_URL = 'http://localhost:3000';
+
+		const apiKeyInput = document.getElementById('apiKeyInput');
+		const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+		const usernameInput = document.getElementById('usernameInput');
+		const passwordInput = document.getElementById('passwordInput');
+		const registerBtn = document.getElementById('registerBtn');
+		const loginBtn = document.getElementById('loginBtn');
+		const logoutBtn = document.getElementById('logoutBtn');
+		const wordInput = document.getElementById('wordInput');
+		const analyzeBtn = document.getElementById('analyzeBtn');
+		const wordList = document.getElementById('wordList');
+		const statusText = document.getElementById('statusText');
+
+		function setStatus(message) {
+			statusText.textContent = message;
+		}
+
+		function getToken() {
+			return localStorage.getItem('token') || '';
+		}
+
+		function getApiKey() {
+			return localStorage.getItem('user_api_key') || '';
+		}
+
+		function normalizePhonetics(phonetics) {
+			if (typeof phonetics === 'string') {
+				const value = phonetics.trim();
+				return value || '暂无音标';
+			}
+
+			if (phonetics && typeof phonetics === 'object') {
+				try {
+					const preferredKeys = ['text', 'ipa', 'value', 'phonetic', 'us', 'uk'];
+					for (const key of preferredKeys) {
+						const candidate = phonetics[key];
+						if (typeof candidate === 'string' && candidate.trim()) {
+							return candidate.trim();
+						}
+					}
+
+					const allValues = Object.values(phonetics)
+						.filter((value) => typeof value === 'string' && value.trim())
+						.map((value) => value.trim());
+
+					if (allValues.length > 0) {
+						return allValues.join(' / ');
+					}
+				} catch (error) {
+					return '暂无音标';
+				}
+			}
+
+			return '暂无音标';
+		}
+
+		function renderWords(words) {
+			wordList.innerHTML = '';
+
+			if (!Array.isArray(words) || words.length === 0) {
+				const empty = document.createElement('div');
+				empty.className = 'empty-state';
+				empty.textContent = '暂无单词记录';
+				wordList.appendChild(empty);
+				return;
+			}
+
+			words.forEach((item) => {
+				const card = document.createElement('article');
+				card.className = 'word-card';
+
+				const title = document.createElement('h3');
+				title.className = 'word-title';
+				title.textContent = item.word || '';
+
+				const meta = document.createElement('div');
+				meta.className = 'word-meta';
+				const phoneticsText = normalizePhonetics(item.phonetics);
+				meta.innerHTML = `
+					<div><strong>音标：</strong>${phoneticsText}</div>
+					<div><strong>翻译：</strong>${item.translation || ''}</div>
+					<div><strong>例句：</strong>${item.example_sentence || ''}</div>
+					<div><strong>释义：</strong>${item.paraphrase || ''}</div>
+				`;
+
+				card.appendChild(title);
+				card.appendChild(meta);
+				wordList.appendChild(card);
+			});
+		}
+
+		async function fetchWords() {
+			const token = getToken();
+
+			if (!token) {
+				renderWords([]);
+				return;
+			}
+
+			try {
+				const response = await fetch(`${BASE_URL}/api/words`, {
+					method: 'GET',
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
+
+				const data = await response.json();
+
+				if (!response.ok) {
+					throw new Error(data.message || '获取单词失败');
+				}
+
+				renderWords(data);
+			} catch (error) {
+				setStatus(error.message || '获取单词失败');
+			}
+		}
+
+		async function register() {
+			const username = usernameInput.value.trim();
+			const password = passwordInput.value;
+
+			if (!username || !password) {
+				setStatus('请先输入用户名和密码');
+				return;
+			}
+
+			try {
+				const response = await fetch(`${BASE_URL}/api/register`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ username, password }),
+				});
+
+				const data = await response.json();
+
+				if (!response.ok) {
+					throw new Error(data.message || '注册失败');
+				}
+
+				setStatus('注册成功，请继续登录');
+			} catch (error) {
+				setStatus(error.message || '注册失败');
+			}
+		}
+
+		async function login() {
+			const username = usernameInput.value.trim();
+			const password = passwordInput.value;
+
+			if (!username || !password) {
+				setStatus('请先输入用户名和密码');
+				return;
+			}
+
+			try {
+				const response = await fetch(`${BASE_URL}/api/login`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ username, password }),
+				});
+
+				const data = await response.json();
+
+				if (!response.ok) {
+					throw new Error(data.message || '登录失败');
+				}
+
+				localStorage.setItem('token', data.token);
+				setStatus('登录成功');
+				await fetchWords();
+			} catch (error) {
+				setStatus(error.message || '登录失败');
+			}
+		}
+
+		function logout() {
+			localStorage.removeItem('token');
+			localStorage.removeItem('user_api_key');
+			apiKeyInput.value = '';
+			wordInput.value = '';
+			renderWords([]);
+			setStatus('已退出登录');
+		}
+
+		async function analyzeAndSaveWord() {
+			const token = getToken();
+			const apiKey = getApiKey();
+			const word = (wordInput.value || '').trim();
+
+			if (!token) {
+				setStatus('请先登录');
+				return;
+			}
+
+			if (!apiKey) {
+				setStatus('请先保存 Gemini API Key');
+				return;
+			}
+
+			if (!word) {
+				setStatus('请输入生词');
+				return;
+			}
+
+			try {
+				setStatus('正在分析并保存...');
+
+				const response = await fetch(`${BASE_URL}/api/words`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${token}`,
+					},
+					body: JSON.stringify({
+						word,
+						user_api_key: apiKey,
+					}),
+				});
+
+				const data = await response.json();
+
+				if (!response.ok) {
+					throw new Error(data.message || '分析并保存失败');
+				}
+
+				setStatus(`已保存：${data.word}`);
+				wordInput.value = '';
+				await fetchWords();
+			} catch (error) {
+				setStatus(error.message || '分析并保存失败');
+			}
+		}
+
+		saveApiKeyBtn.addEventListener('click', () => {
+			const value = (apiKeyInput.value || '').trim();
+
+			if (!value) {
+				setStatus('API Key 不能为空');
+				return;
+			}
+
+			localStorage.setItem('user_api_key', value);
+			setStatus('API Key 已保存到 localStorage');
+		});
+
+		registerBtn.addEventListener('click', register);
+		loginBtn.addEventListener('click', login);
+		logoutBtn.addEventListener('click', logout);
+		analyzeBtn.addEventListener('click', analyzeAndSaveWord);
+
+		window.addEventListener('DOMContentLoaded', async () => {
+			apiKeyInput.value = getApiKey();
+			await fetchWords();
+		});
+	</script>
+</body>
+</html>
