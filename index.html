@@ -155,6 +155,15 @@
 			color: #333;
 		}
 
+		.login-user {
+			display: none;
+			padding: 10px 12px;
+			border: 3px solid var(--color-black);
+			background: #fff;
+			font-size: 14px;
+			font-weight: 900;
+		}
+
 		.status {
 			margin: 0;
 			min-height: 22px;
@@ -214,23 +223,24 @@
 			<div class="section-title">账户与密钥</div>
 			<div class="row">
 				<div class="field">
-					<label for="apiKeyInput">Gemini API Key</label>
-					<input id="apiKeyInput" type="password" placeholder="请输入 Gemini API Key" />
+					<label for="apiKeyInput">火山引擎 API Key</label>
+					<input id="apiKeyInput" type="password" placeholder="请输入火山引擎 API Key" />
 				</div>
 				<button class="btn primary" id="saveApiKeyBtn" type="button">保存 API Key</button>
 			</div>
 
 			<div class="row-2">
-				<div class="field">
+				<div class="field" id="usernameField">
 					<label for="usernameInput">用户名</label>
 					<input id="usernameInput" type="text" placeholder="请输入用户名" autocomplete="username" />
 				</div>
-				<div class="field">
+				<div class="field" id="passwordField">
 					<label for="passwordInput">密码</label>
 					<input id="passwordInput" type="password" placeholder="请输入密码" autocomplete="current-password" />
 				</div>
 				<button class="btn" id="registerBtn" type="button">注册</button>
 				<button class="btn primary" id="loginBtn" type="button">登录</button>
+				<div class="login-user" id="currentUserText">当前用户：-</div>
 				<button class="btn pink" id="logoutBtn" type="button">退出登录</button>
 			</div>
 
@@ -262,9 +272,12 @@
 		const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
 		const usernameInput = document.getElementById('usernameInput');
 		const passwordInput = document.getElementById('passwordInput');
+		const usernameField = document.getElementById('usernameField');
+		const passwordField = document.getElementById('passwordField');
 		const registerBtn = document.getElementById('registerBtn');
 		const loginBtn = document.getElementById('loginBtn');
 		const logoutBtn = document.getElementById('logoutBtn');
+		const currentUserText = document.getElementById('currentUserText');
 		const wordInput = document.getElementById('wordInput');
 		const analyzeBtn = document.getElementById('analyzeBtn');
 		const wordList = document.getElementById('wordList');
@@ -280,6 +293,43 @@
 
 		function getApiKey() {
 			return localStorage.getItem('user_api_key') || '';
+		}
+
+		function getCurrentUsername() {
+			const savedUsername = localStorage.getItem('current_username');
+			if (savedUsername) return savedUsername;
+
+			const token = getToken();
+			if (!token) return '';
+
+			try {
+				const payloadBase64 = token.split('.')[1];
+				if (!payloadBase64) return '';
+				const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+				const payload = JSON.parse(payloadJson);
+				return payload.username || '';
+			} catch (error) {
+				return '';
+			}
+		}
+
+		function updateAuthUI() {
+			const token = getToken();
+			const username = getCurrentUsername();
+			const isLoggedIn = Boolean(token);
+
+			usernameField.style.display = isLoggedIn ? 'none' : 'grid';
+			passwordField.style.display = isLoggedIn ? 'none' : 'grid';
+			registerBtn.style.display = isLoggedIn ? 'none' : 'inline-block';
+			loginBtn.style.display = isLoggedIn ? 'none' : 'inline-block';
+			currentUserText.style.display = isLoggedIn ? 'block' : 'none';
+			logoutBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+
+			if (isLoggedIn) {
+				currentUserText.textContent = `当前用户：${username || '未知用户'}`;
+			} else {
+				currentUserText.textContent = '当前用户：-';
+			}
 		}
 
 		function normalizePhonetics(phonetics) {
@@ -431,6 +481,8 @@
 				}
 
 				localStorage.setItem('token', data.token);
+				localStorage.setItem('current_username', username);
+				updateAuthUI();
 				setStatus('登录成功');
 				await fetchWords();
 			} catch (error) {
@@ -441,8 +493,12 @@
 		function logout() {
 			localStorage.removeItem('token');
 			localStorage.removeItem('user_api_key');
+			localStorage.removeItem('current_username');
 			apiKeyInput.value = '';
 			wordInput.value = '';
+			usernameInput.value = '';
+			passwordInput.value = '';
+			updateAuthUI();
 			renderWords([]);
 			setStatus('已退出登录');
 		}
@@ -458,7 +514,7 @@
 			}
 
 			if (!apiKey) {
-				setStatus('请先保存 Gemini API Key');
+				setStatus('请先保存火山引擎 API Key');
 				return;
 			}
 
@@ -515,6 +571,7 @@
 
 		window.addEventListener('DOMContentLoaded', async () => {
 			apiKeyInput.value = getApiKey();
+			updateAuthUI();
 			await fetchWords();
 		});
 	</script>
