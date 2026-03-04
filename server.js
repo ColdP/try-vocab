@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -340,6 +341,12 @@ app.get('/api/words', authenticateToken, async (req, res) => {
 		console.error('Failed to fetch words:', error);
 		return res.status(500).json({ message: 'Failed to fetch words' });
 	}
+});
+
+app.use(express.static(path.join(__dirname)));
+
+app.get('/', (req, res) => {
+	res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 async function startServer() {
